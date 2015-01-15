@@ -22,7 +22,7 @@ database_cleanerというgemがありますが、これがどのような設定�
 
 ### ソース
 
-5ab96ee のソースにて実行しました。
+miyohide/db_cleaner_test@5ab96ee のソースにて実行しました。
 
 具体的には、動かしたテストは次のとおりです。
 
