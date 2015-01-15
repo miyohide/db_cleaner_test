@@ -18,6 +18,6 @@ database_cleanerというgemがありますが、これがどのような設定�
 
 ## 実行
 
-`bin/rake rspec:models`でテストを実行し、その時に出力された`log/test.log`から何が起きたかを見てみることにします。
+`bin/rake spec:models`でテストを実行し、その時に出力された`log/test.log`から何が起きたかを見てみることにします。
 
 
