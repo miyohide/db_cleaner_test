@@ -63,7 +63,69 @@ end
 
 ま、ここでは、`SAVEPOINT`って機能を使って変更した内容を保存しては元に戻すってことをやっています。
 
+# database_cleanerを使った場合
+## セットアップ
 
+`database_cleaner`Gemのセットアップを行います。設定は、`database_cleaner`のREADMEから拾って、次のようにしました。
 
+```ruby
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
 
+  config.around(:each) do |example|
+    DatabaseCleaner.cleaning do
+      example.run
+    end
+  end
+```
+
+また、[RSpecのマニュアル](https://relishapp.com/rspec/rspec-rails/docs/transactions)を見ると、`use_transactional_fixtures`を`false`にするってなことが書かれていたので、それを設定しました。
+
+```ruby
+  config.use_transactional_fixtures = false
+```
+
+### ソース
+
+miyohide/db_cleaner_test@f32fa06d1b2a5e18fbd5df76b447cfbf15beb30a のソースにて実行しました。
+
+具体的には、これまで動かしたコードと同じテスト次のコードです。
+
+```ruby
+require 'rails_helper'
+
+RSpec.describe User, :type => :model do
+  describe 'sample test1' do
+    before do
+      @user = FactoryGirl.create(:user)
+    end
+
+    it 'username and email' do
+      expect(@user.user_name).to eq('user1 name')
+      expect(@user.email_address).to eq('user1@example.com')
+    end
+  end
+
+end
+```
+
+### 結果
+
+動かしたときの`log/test.log`は次のようになりました。
+
+```
+  ActiveRecord::SchemaMigration Load (0.1ms)  SELECT "schema_migrations".* FROM "schema_migrations"
+   (3.2ms)  DELETE FROM "users";
+   (0.1ms)  SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence';
+   (0.1ms)  DELETE FROM sqlite_sequence where name = 'users';
+   (0.0ms)  begin transaction
+   (0.0ms)  commit transaction
+   (0.0ms)  begin transaction
+   (0.0ms)  SAVEPOINT active_record_1
+  SQL (0.3ms)  INSERT INTO "users" ("created_at", "email_address", "updated_at", "user_name") VALUES (?, ?, ?, ?)  [["created_at", "2015-01-17 08:12:54.981577"], ["email_address", "user1@example.com"], ["updated_at", "2015-01-17 08:12:54.981577"], ["user_name", "user1 name"]]
+   (0.0ms)  RELEASE SAVEPOINT active_record_1
+   (0.8ms)  rollback transaction
+```
 
