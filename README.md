@@ -129,3 +129,9 @@ end
    (0.8ms)  rollback transaction
 ```
 
+### 考察
+
+テストの開始直後に`DELETE FROM "users";`で`users`テーブルの中身をすべて削除しています。これは`database_cleaner`の`clean_with`メソッドによって指定した内容が実行されているためです。ここで`truncation`を指定していると、DELETE文によってデータベースの中身が全て削除されます。
+
+合わせて、`sqlite_sequence`も削除しています。これはSQLite3での`id`値を保存しているテーブルで、これを初期化しています。
+
