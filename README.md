@@ -190,5 +190,10 @@ end
    (0.8ms)  rollback transaction
 ```
 
+### 考察
+
+嬉しい事に、`users`テーブルと`posts`テーブルの両方を全件削除しています。合わせて`sqlite_sequence`も`users`と`posts`の両方削除しています。
+
+あとは、1個の場合と同じですね。テストのたびにtransactionを発行して、テストが終わったら、rollbackしてデータ操作を元に戻しています。
 
 
