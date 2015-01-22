@@ -143,7 +143,7 @@ end
 
 ### ソース
 
-miyohide/db_cleaner_test@ のソースにて実行しました。scaffoldで`Post`モデルなどを生成して、簡単にfactoryとmodel specを作って、流してみました。
+miyohide/db_cleaner_test@ee5a331e6775d881198532ea3ff830a58ceb1cce のソースにて実行しました。scaffoldで`Post`モデルなどを生成して、簡単にfactoryとmodel specを作って、流してみました。
 
 ```ruby
 require 'rails_helper'
@@ -196,4 +196,53 @@ end
 
 あとは、1個の場合と同じですね。テストのたびにtransactionを発行して、テストが終わったら、rollbackしてデータ操作を元に戻しています。
 
+## strategyをtruncationにした場合
+
+次に、`DatabaseCleaner.strategy`の値を`truncation`にした場合を見てみます。
+
+### ソース
+
+miyohide/db_cleaner_test@d209f5da5ae1a55e4a2e9f04532e63a631bd5cb9 のソースにて実行しました。先ほどのソースに対して、`rails_helper.rb`の`DatabaseCleaner.strategy`を`truncation`に設定しただけです。
+
+```ruby
+## 省略
+  config.before(:suite) do
+    # DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.strategy = :truncation
+    DatabaseCleaner.clean_with(:truncation)
+  end
+## 省略
+```
+
+### 結果
+
+動かした時の`log/test.log`は次のようになりました。
+
+```
+  ActiveRecord::SchemaMigration Load (0.7ms)  SELECT "schema_migrations".* FROM "schema_migrations"
+   (5.5ms)  DELETE FROM "users";
+   (0.3ms)  SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence';
+   (0.2ms)  DELETE FROM sqlite_sequence where name = 'users';
+   (2.8ms)  DELETE FROM "posts";
+   (0.1ms)  SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence';
+   (0.1ms)  DELETE FROM sqlite_sequence where name = 'posts';
+   (0.1ms)  begin transaction
+  SQL (0.4ms)  INSERT INTO "posts" ("body", "created_at", "title", "updated_at") VALUES (?, ?, ?, ?)  [["body", "body1"], ["created_at", "2015-01-22 14:51:47.543652"], ["title", "title1"], ["updated_at", "2015-01-22 14:51:47.543652"]]
+   (1.6ms)  commit transaction
+   (1.9ms)  DELETE FROM "users";
+   (0.2ms)  SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence';
+   (0.1ms)  DELETE FROM sqlite_sequence where name = 'users';
+   (1.7ms)  DELETE FROM "posts";
+   (0.2ms)  SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence';
+   (2.3ms)  DELETE FROM sqlite_sequence where name = 'posts';
+   (0.1ms)  begin transaction
+  SQL (0.4ms)  INSERT INTO "users" ("created_at", "email_address", "updated_at", "user_name") VALUES (?, ?, ?, ?)  [["created_at", "2015-01-22 14:51:47.582189"], ["email_address", "user1@example.com"], ["updated_at", "2015-01-22 14:51:47.582189"], ["user_name", "user1 name"]]
+   (2.4ms)  commit transaction
+   (3.1ms)  DELETE FROM "users";
+   (0.3ms)  SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence';
+   (2.3ms)  DELETE FROM sqlite_sequence where name = 'users';
+   (1.5ms)  DELETE FROM "posts";
+   (0.1ms)  SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence';
+   (0.1ms)  DELETE FROM sqlite_sequence where name = 'posts';
+```
 
