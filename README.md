@@ -246,3 +246,9 @@ miyohide/db_cleaner_test@d209f5da5ae1a55e4a2e9f04532e63a631bd5cb9 のソース�
    (0.1ms)  DELETE FROM sqlite_sequence where name = 'posts';
 ```
 
+### 考察
+
+これまでと違うのは、テストごとのデータの削除がtransaction-rollback方式から、DELETE文によって実行されている点です。DELETE文の発行はそれなりに時間がかかる処理なので、これまでのtransaction-rollback方式よりも全体的にテストの時間がかかっていることもわかります。
+
+結局、最終的に得られる結果は同じですので、`strategy`を`truncation`にするのはRDBMSがSAVEPOINTに対応していない場合のみに使ったほうが良さそうです。
+
