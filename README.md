@@ -252,3 +252,53 @@ miyohide/db_cleaner_test@d209f5da5ae1a55e4a2e9f04532e63a631bd5cb9 のソース�
 
 結局、最終的に得られる結果は同じですので、`strategy`を`truncation`にするのはRDBMSがSAVEPOINTに対応していない場合のみに使ったほうが良さそうです。
 
+## strategyをdeletinにした場合
+
+次に、`DatabaseCleaner.strategy`の値を`deletion`にした場合を見てみます。
+
+### ソース
+
+miyohide/db_cleaner_test@b8bbf36 のソースにて実行しました。先ほどのソースに対して、`rails_helper.rb`の`DatabaseCleaner.strategy`を`deletion`に設定しただけです。
+
+```ruby
+## 省略
+  config.before(:suite) do
+    # DatabaseCleaner.strategy = :transaction
+    # DatabaseCleaner.strategy = :truncation
+    DatabaseCleaner.strategy = :deletion
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.around(:each) do |example|
+    DatabaseCleaner.cleaning do
+      example.run
+    end
+  end
+## 省略
+```
+
+### 結果
+
+動かした時の`log/test.log`は次のようになりました。
+
+```
+  ActiveRecord::SchemaMigration Load (0.1ms)  SELECT "schema_migrations".* FROM "schema_migrations"
+   (4.4ms)  DELETE FROM "users";
+   (0.2ms)  SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence';
+   (0.1ms)  DELETE FROM sqlite_sequence where name = 'users';
+   (1.6ms)  DELETE FROM "posts";
+   (0.1ms)  SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence';
+   (0.1ms)  DELETE FROM sqlite_sequence where name = 'posts';
+   (0.0ms)  begin transaction
+  SQL (0.3ms)  INSERT INTO "posts" ("body", "created_at", "title", "updated_at") VALUES (?, ?, ?, ?)  [["body", "body1"], ["created_at", "2015-01-25 13:58:13.118795"], ["title", "title1"], ["updated_at", "2015-01-25 13:58:13.118795"]]
+   (1.8ms)  commit transaction
+   (1.7ms)  DELETE FROM "users";
+   (1.6ms)  DELETE FROM "posts";
+   (0.1ms)  begin transaction
+  SQL (0.3ms)  INSERT INTO "users" ("created_at", "email_address", "updated_at", "user_name") VALUES (?, ?, ?, ?)  [["created_at", "2015-01-25 13:58:13.145579"], ["email_address", "user1@example.com"], ["updated_at", "2015-01-25 13:58:13.145579"], ["user_name", "user1 name"]]
+   (1.5ms)  commit transaction
+   (1.5ms)  DELETE FROM "users";
+   (1.4ms)  DELETE FROM "posts";
+```
+
+
