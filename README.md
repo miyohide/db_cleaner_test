@@ -301,4 +301,9 @@ miyohide/db_cleaner_test@b8bbf36 のソースにて実行しました。先ほ�
    (1.4ms)  DELETE FROM "posts";
 ```
 
+### 考察
+
+ほとんど`truncation`と同じですが、`DELETE FROM sqlite_sequence where name = 'posts';`のように、sqlite_sequenceからのデータ削除は今回は行われていません。まぁ、こういう仕様だと思うことにしましょう。
+
+
 
